@@ -1,17 +1,19 @@
 {
-    "sample_application": {
-        "key": "32134bbb-5278-43c0-a6ca-4046a5edeb9f",
-        "name": "sample_application",
-        "display_name": "Sample Application",
+    "prosense_sensors": {
+        "name": "prosense_sensors",
+        "display_name": "ProSense Sensors",
         "type": "DEV",
         "visibility": "PUB",
         "allow_many": true,
-        "description": "A template application for Doover",
+        "description": "Doover device app for ProSense sensors over Modbus RTU",
         "long_description": "README.md",
-        "depends_on": [],
+        "depends_on": [
+            "modbus_interface"
+        ],
         "owner_org_key": "",
-        "image_name": "ghcr.io/getdoover/app-template:main",
-        "container_registry_profile_key": "",
+        "icon_url": "https://static.wixstatic.com/media/b18625_e0f0f5c7f1944e75ab4159868a26a83a~mv2.jpg",
+        "image_name": "ghcr.io/getdoover/prosense-sensors:main",
+        "container_registry_profile_id": 93955828574386692,
         "build_args": "--platform linux/amd64,linux/arm64",
         "config_schema": {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -19,41 +21,359 @@
             "title": "$default",
             "type": "object",
             "properties": {
-                "digital_outputs_enabled": {
-                    "title": "Digital Outputs Enabled",
-                    "x-name": "digital_outputs_enabled",
+                "variant": {
+                    "enum": [
+                        "temperature",
+                        "pressure",
+                        "level",
+                        "humidity",
+                        "ph",
+                        "weight"
+                    ],
+                    "title": "Sensor Variant",
+                    "x-name": "variant",
+                    "x-hidden": false,
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "x-required": false,
+                    "description": "ProSense product family. Only 'temperature' is fully wired up; the others are placeholders for future expansion of this app.",
+                    "default": "temperature",
+                    "x-position": 0
+                },
+                "modbus_config": {
+                    "title": "Modbus Config",
+                    "x-name": "modbus_config",
+                    "x-hidden": false,
+                    "type": "object",
+                    "x-required": true,
+                    "x-position": 1,
+                    "properties": {
+                        "bus_type": {
+                            "enum": [
+                                "serial",
+                                "tcp"
+                            ],
+                            "title": "Bus Type",
+                            "x-name": "bus_type",
+                            "x-hidden": false,
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "x-required": false,
+                            "default": "serial",
+                            "x-position": 1
+                        },
+                        "name": {
+                            "title": "Name",
+                            "x-name": "name",
+                            "x-hidden": false,
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "x-required": false,
+                            "default": "default",
+                            "x-position": 2
+                        },
+                        "serial_port": {
+                            "title": "Serial Port",
+                            "x-name": "serial_port",
+                            "x-hidden": false,
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "x-required": false,
+                            "default": "/dev/ttyAMA0",
+                            "x-position": 3
+                        },
+                        "serial_baud": {
+                            "title": "Serial Baud",
+                            "x-name": "serial_baud",
+                            "x-hidden": false,
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "x-required": false,
+                            "default": 9600,
+                            "x-position": 4
+                        },
+                        "serial_method": {
+                            "enum": [
+                                "rtu",
+                                "ascii",
+                                "socket",
+                                "tls"
+                            ],
+                            "title": "Serial Method",
+                            "x-name": "serial_method",
+                            "x-hidden": false,
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "x-required": false,
+                            "default": "rtu",
+                            "x-position": 5
+                        },
+                        "serial_data_bits": {
+                            "title": "Serial Data Bits",
+                            "x-name": "serial_data_bits",
+                            "x-hidden": false,
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "x-required": false,
+                            "default": 8,
+                            "x-position": 6
+                        },
+                        "serial_parity": {
+                            "enum": [
+                                "None",
+                                "Even",
+                                "Odd"
+                            ],
+                            "title": "Serial Parity",
+                            "x-name": "serial_parity",
+                            "x-hidden": false,
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "x-required": false,
+                            "default": "None",
+                            "x-position": 7
+                        },
+                        "serial_stop_bits": {
+                            "title": "Serial Stop Bits",
+                            "x-name": "serial_stop_bits",
+                            "x-hidden": false,
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "x-required": false,
+                            "default": 1,
+                            "x-position": 8
+                        },
+                        "serial_timeout": {
+                            "title": "Serial Timeout",
+                            "x-name": "serial_timeout",
+                            "x-hidden": false,
+                            "type": [
+                                "number",
+                                "null"
+                            ],
+                            "x-required": false,
+                            "default": 0.3,
+                            "x-position": 9
+                        },
+                        "tcp_uri": {
+                            "title": "TCP URI",
+                            "x-name": "tcp_uri",
+                            "x-hidden": false,
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "x-required": false,
+                            "default": "127.0.0.1:5000",
+                            "x-position": 10
+                        },
+                        "tcp_timeout": {
+                            "title": "TCP Timeout",
+                            "x-name": "tcp_timeout",
+                            "x-hidden": false,
+                            "type": [
+                                "number",
+                                "null"
+                            ],
+                            "x-required": false,
+                            "default": 2.0,
+                            "x-position": 11
+                        }
+                    },
+                    "additionalElements": true,
+                    "required": [],
+                    "x-collapsible": true,
+                    "x-defaultCollapsed": false
+                },
+                "slave_id": {
+                    "title": "Slave ID",
+                    "x-name": "slave_id",
+                    "x-hidden": false,
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "x-required": false,
+                    "description": "Modbus unit / slave ID of the ProSense sensor (1..255).",
+                    "default": 1,
+                    "x-position": 2
+                },
+                "poll_interval_seconds": {
+                    "title": "Poll Interval (seconds)",
+                    "x-name": "poll_interval_seconds",
+                    "x-hidden": false,
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "x-required": false,
+                    "description": "How often to read the sensor.",
+                    "default": 3,
+                    "x-position": 3
+                },
+                "display_unit": {
+                    "enum": [
+                        "celsius",
+                        "fahrenheit",
+                        "kelvin"
+                    ],
+                    "title": "Display Unit (temperature)",
+                    "x-name": "display_unit",
+                    "x-hidden": false,
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "x-required": false,
+                    "description": "Unit used for the published temperature tag, regardless of what the sensor itself is configured for. Only applies to the temperature variant.",
+                    "default": "celsius",
+                    "x-position": 4
+                },
+                "no_comms_timeout_seconds": {
+                    "title": "No-Comms Timeout (seconds)",
+                    "x-name": "no_comms_timeout_seconds",
+                    "x-hidden": false,
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "x-required": false,
+                    "description": "Clear comms_ok after this many seconds without a successful read.",
+                    "default": 30,
+                    "x-position": 5
+                },
+                "over_temp_threshold": {
+                    "title": "Over-Temperature Warning Threshold",
+                    "x-name": "over_temp_threshold",
+                    "x-hidden": false,
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "x-required": false,
+                    "description": "Optional. If set, an over-temperature warning is shown in the UI whenever the published temperature is at or above this value. Specified in the configured display_unit. Leave blank to disable.",
+                    "default": null,
+                    "x-position": 6
+                },
+                "ui_enabled": {
+                    "title": "Enable UI",
+                    "x-name": "ui_enabled",
                     "x-hidden": false,
                     "type": [
                         "boolean",
                         "null"
                     ],
                     "x-required": false,
+                    "description": "Show the sensor's UI tile on the device. Disable to hide all of this app's UI elements (the tags still publish).",
                     "default": true,
-                    "x-position": 0
+                    "x-position": 7
                 },
-                "a_funny_message": {
-                    "title": "A Funny Message",
-                    "x-name": "a_funny_message",
+                "temperature_ranges": {
+                    "title": "Temperature Ranges",
+                    "x-name": "temperature_ranges",
                     "x-hidden": false,
-                    "type": "string",
+                    "type": "array",
                     "x-required": true,
-                    "x-position": 1
+                    "description": "Optional. If any ranges are defined the temperature element is shown as a radial gauge with these coloured bands. Leave empty for a plain numeric display.",
+                    "x-position": 8,
+                    "items": {
+                        "title": "Range",
+                        "x-name": "range",
+                        "x-hidden": false,
+                        "type": "object",
+                        "x-required": true,
+                        "properties": {
+                            "label": {
+                                "title": "Label",
+                                "x-name": "label",
+                                "x-hidden": false,
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "x-required": false,
+                                "description": "Optional label shown next to the range (e.g. 'Cold', 'Normal', 'Hot').",
+                                "default": "",
+                                "x-position": 1
+                            },
+                            "range_min": {
+                                "title": "Min",
+                                "x-name": "range_min",
+                                "x-hidden": false,
+                                "type": "number",
+                                "x-required": true,
+                                "description": "Lower bound (in the configured display unit).",
+                                "x-position": 2
+                            },
+                            "range_max": {
+                                "title": "Max",
+                                "x-name": "range_max",
+                                "x-hidden": false,
+                                "type": "number",
+                                "x-required": true,
+                                "description": "Upper bound (in the configured display unit).",
+                                "x-position": 3
+                            },
+                            "colour": {
+                                "title": "Colour",
+                                "x-name": "colour",
+                                "x-hidden": false,
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "x-required": false,
+                                "description": "HTML colour name (red, orange, yellow, green, blue, purple, grey) or a hex string like #FF5733.",
+                                "default": "blue",
+                                "x-position": 4
+                            }
+                        },
+                        "additionalElements": true,
+                        "required": [
+                            "range_min",
+                            "range_max"
+                        ],
+                        "x-collapsible": true,
+                        "x-defaultCollapsed": false
+                    }
                 },
-                "simulator_app_key": {
+                "sim_app_key": {
                     "title": "Simulator App Key",
-                    "x-name": "simulator_app_key",
+                    "x-name": "sim_app_key",
                     "x-hidden": false,
                     "format": "doover-resource-application",
-                    "type": "string",
-                    "x-required": true,
-                    "description": "The app key for the simulator",
-                    "x-position": 2
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "x-required": false,
+                    "description": "Optional. If set, read sensor data from this simulator app's tags instead of the Modbus bus. Leave blank for normal operation.",
+                    "default": "",
+                    "x-position": 9
                 }
             },
             "additionalElements": true,
             "required": [
-                "a_funny_message",
-                "simulator_app_key"
+                "modbus_config",
+                "temperature_ranges"
             ]
         },
         "ui_schema": {
@@ -66,135 +386,62 @@
             "type": "uiApplication",
             "name": "$config.app().APP_KEY",
             "children": {
-                "is_working": {
-                    "name": "is_working",
+                "temperature": {
+                    "name": "temperature",
                     "type": "uiVariable",
-                    "displayString": "We Working?",
+                    "displayString": "Temperature",
                     "showActivity": true,
-                    "position": 51,
-                    "hidden": false,
-                    "varType": "bool",
-                    "currentValue": "$tag.app().is_working:boolean:false"
-                },
-                "uptime": {
-                    "name": "uptime",
-                    "type": "uiVariable",
-                    "displayString": "Uptime",
-                    "showActivity": true,
-                    "position": 52,
-                    "hidden": false,
-                    "varType": "float",
-                    "currentValue": "$tag.app().uptime:number:0"
-                },
-                "send_alert": {
-                    "name": "send_alert",
-                    "type": "uiButton",
-                    "displayString": "Send message as alert",
                     "position": 1,
                     "hidden": false,
-                    "currentValue": "$cmds.app().send_alert",
-                    "appKey": "$config.app().APP_KEY"
+                    "varType": "float",
+                    "currentValue": "$tag.app().temperature:number:0",
+                    "decPrecision": 2
                 },
-                "test_message": {
-                    "name": "test_message",
-                    "type": "uiTextInput",
-                    "displayString": "Put in a message",
-                    "position": 54,
-                    "hidden": false,
-                    "currentValue": "$cmds.app().test_message",
-                    "appKey": "$config.app().APP_KEY",
-                    "isTextArea": false
-                },
-                "test_output": {
-                    "name": "test_output",
+                "comms_ok": {
+                    "name": "comms_ok",
                     "type": "uiVariable",
-                    "displayString": "This is message we got",
+                    "displayString": "Sensor Communicating",
                     "showActivity": true,
-                    "position": 55,
+                    "position": 2,
                     "hidden": false,
-                    "varType": "string",
-                    "currentValue": "$tag.app().test_output:string:\"\""
+                    "varType": "bool",
+                    "currentValue": "$tag.app().comms_ok:boolean:false"
                 },
-                "battery": {
-                    "name": "battery",
-                    "type": "uiSubmodule",
-                    "displayString": "Battery Module",
-                    "showActivity": true,
-                    "position": 59,
-                    "hidden": false,
-                    "children": {
-                        "voltage": {
-                            "name": "voltage",
-                            "type": "uiVariable",
-                            "displayString": "Battery Voltage",
-                            "showActivity": true,
-                            "position": 56,
-                            "hidden": false,
-                            "varType": "float",
-                            "currentValue": "$tag.app().battery_voltage:number:0",
-                            "decPrecision": 2,
-                            "ranges": [
-                                {
-                                    "min": 0,
-                                    "max": 10,
-                                    "colour": "red",
-                                    "show_on_graph": true,
-                                    "label": "Low"
-                                },
-                                {
-                                    "min": 10,
-                                    "max": 20,
-                                    "colour": "green",
-                                    "show_on_graph": true,
-                                    "label": "Normal"
-                                },
-                                {
-                                    "min": 20,
-                                    "max": 30,
-                                    "colour": "blue",
-                                    "show_on_graph": true,
-                                    "label": "High"
-                                }
-                            ]
-                        },
-                        "low_voltage_alert": {
-                            "name": "low_voltage_alert",
-                            "type": "uiFloatInput",
-                            "displayString": "Low Voltage Alert",
-                            "position": 57,
-                            "hidden": false,
-                            "currentValue": "$cmds.app().low_voltage_alert",
-                            "appKey": "$config.app().APP_KEY"
-                        },
-                        "charge_mode": {
-                            "name": "charge_mode",
-                            "type": "uiSelect",
-                            "displayString": "Charge Mode",
-                            "position": 58,
-                            "hidden": false,
-                            "currentValue": "$cmds.app().charge_mode",
-                            "appKey": "$config.app().APP_KEY",
-                            "options": {
-                                "charge": {
-                                    "name": "charge",
-                                    "displayString": "Charge",
-                                    "type": "uiElement"
-                                },
-                                "discharge": {
-                                    "name": "discharge",
-                                    "displayString": "Discharge",
-                                    "type": "uiElement"
-                                },
-                                "idle": {
-                                    "name": "idle",
-                                    "displayString": "Idle",
-                                    "type": "uiElement"
-                                }
-                            }
-                        }
-                    }
+                "comms_warning": {
+                    "name": "comms_warning",
+                    "type": "uiWarningIndicator",
+                    "displayString": "Sensor Not Communicating",
+                    "position": 10,
+                    "hidden": "$tag.app().comms_ok:boolean:false",
+                    "currentValue": "$cmds.app().comms_warning",
+                    "appKey": "$config.app().APP_KEY",
+                    "can_cancel": true
+                },
+                "over_temp_warning": {
+                    "name": "over_temp_warning",
+                    "type": "uiWarningIndicator",
+                    "displayString": "Over Temperature",
+                    "position": 11,
+                    "hidden": "$tag.app().temperature_ok:boolean:true",
+                    "currentValue": "$cmds.app().over_temp_warning",
+                    "appKey": "$config.app().APP_KEY",
+                    "can_cancel": true
                 }
             }
-        }
+        },
+        "organisation_id": null,
+        "key": null,
+        "owner_org_id": null,
+        "code_repo_id": null,
+        "repo_branch": "main",
+        "lambda_config": null,
+        "banner_url": null,
+        "staging_config": {},
+        "build_widget_command": null,
+        "export_config_command": null,
+        "export_ui_command": null,
+        "run_command": null,
+        "lambda_arn": null,
+        "id": 175404460791566087
     }
 }

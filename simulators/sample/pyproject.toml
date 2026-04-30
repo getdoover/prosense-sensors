@@ -1,7 +1,7 @@
 [project]
-name = "sample"
+name = "prosense-sensors-sim"
 version = "0.1.0"
-description = "Sample simulator for the app template"
+description = "Simulator that emits ProSense-shaped raw register values via tags."
 requires-python = ">=3.11"
 dependencies = [
     "pydoover>=1.0.0a8",

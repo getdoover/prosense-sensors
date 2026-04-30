@@ -1,5 +1,27 @@
 {
-    "digital_outputs_enabled": true,
-    "a_funny_message": "yeeha",
-    "simulator_app_key": "sim_app_key"
+    "variant": "temperature",
+    "modbus_config": {
+        "bus_type": "serial",
+        "name": "default",
+        "serial_port": "/dev/ttyAMA0",
+        "serial_baud": 9600,
+        "serial_method": "rtu",
+        "serial_data_bits": 8,
+        "serial_parity": "None",
+        "serial_stop_bits": 1,
+        "serial_timeout": 0.3,
+        "tcp_uri": "127.0.0.1:5000",
+        "tcp_timeout": 2.0
+    },
+    "slave_id": 1,
+    "poll_interval_seconds": 3,
+    "display_unit": "celsius",
+    "no_comms_timeout_seconds": 30,
+    "ui_enabled": true,
+    "temperature_ranges": [
+        {"label": "Cold", "range_min": -20, "range_max": 0, "colour": "blue"},
+        {"label": "Normal", "range_min": 0, "range_max": 30, "colour": "green"},
+        {"label": "Hot", "range_min": 30, "range_max": 60, "colour": "red"}
+    ],
+    "sim_app_key": "sim_app_key"
 }

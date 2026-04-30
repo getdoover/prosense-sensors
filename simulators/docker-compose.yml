@@ -3,7 +3,7 @@ services:
     image: spaneng/doover_device_agent:apps
     network_mode: host
 
-  sample_simulator:
+  prosense_sim:
     build: ./sample
     network_mode: host
     restart: unless-stopped
@@ -12,13 +12,13 @@ services:
     environment:
       - APP_KEY=sim_app_key
 
-  sample_application:
+  prosense_sensors:
     build: ../
     network_mode: host
     restart: unless-stopped
     depends_on:
       - device_agent
-      - sample_simulator
+      - prosense_sim
     environment:
       - APP_KEY=test_app_key
       - CONFIG_FP=/app/simulators/app_config.json
