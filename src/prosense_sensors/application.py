@@ -217,11 +217,15 @@ class ProSenseApplication(Application):
         return convert_temperature(value_native, sensor_unit, display)
 
     async def _note_failed_read(self, now: float) -> None:
+        # No usable reading this cycle: drop the temperature to null
+        # immediately so the UI stops showing a stale value. The
+        # comms_ok flag has a grace window so a single missed read
+        # doesn't flap the indicator.
+        await self.tags.temperature.set(None)
         staleness = now - self._last_successful_read_ts
         timeout = self.config.no_comms_timeout_seconds.value
         if self._last_successful_read_ts == 0 or staleness > timeout:
             await self.tags.comms_ok.set(False)
-            await self.tags.temperature.set(None)
 
     # -----------------------------------------------------------------
     # Technician command tags
