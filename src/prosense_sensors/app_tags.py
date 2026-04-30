@@ -3,7 +3,9 @@ from pydoover.tags import Tag, Tags
 
 class ProSenseTags(Tags):
     # ---- live reading (in the configured display_unit) ------------------
-    temperature = Tag("number", default=0)
+    # default=None so the UI shows "—" before the first read and after
+    # the no-comms timeout, rather than a misleading 0.
+    temperature = Tag("number", default=None)
 
     # ---- diagnostics / raw values ---------------------------------------
     # Sensor-side unit code from register 0x0002 (e.g. 20 = °C, 22 = °F).
@@ -13,10 +15,7 @@ class ProSenseTags(Tags):
     decimal_point = Tag("integer", default=0)
     # Raw int16 PV from register 0x0004 (sign-extended).
     raw_pv_int16 = Tag("integer", default=0)
-    # The float register's two raw 16-bit words at 0x0016/0x0017.
-    raw_pv_float_msw = Tag("integer", default=0)
-    raw_pv_float_lsw = Tag("integer", default=0)
-    # PV decoded from the float register, in the sensor's native unit
+    # PV decoded from int16+decimal_point, in the sensor's native unit
     # (before display-unit conversion). Useful for spotting a unit
     # mismatch between sensor config and app config.
     pv_native = Tag("number", default=0)

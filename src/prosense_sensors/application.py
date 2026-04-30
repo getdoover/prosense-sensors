@@ -7,11 +7,8 @@ from .app_config import ProSenseConfig
 from .app_tags import ProSenseTags
 from .app_ui import ProSenseUI
 from .prosense_driver import (
-    EXPECTED_UNIT_CODES,
     META_BLOCK_COUNT,
     META_BLOCK_START,
-    PV_FLOAT_BLOCK_COUNT,
-    PV_FLOAT_BLOCK_START,
     PV_INT16_BLOCK_COUNT,
     PV_INT16_BLOCK_START,
     REG_BAUD,
@@ -22,7 +19,6 @@ from .prosense_driver import (
     Variant,
     convert_temperature,
     decode_meta,
-    decode_pv_float,
     decode_pv_int16,
     encode_baud,
     encode_parity,
@@ -39,8 +35,6 @@ MODBUS_HOLDING_REGISTER = 4  # pydoover register-type code for holding registers
 # Simulator tag names — matched by simulators/sample/main.py.
 SIM_TAG_UNIT_CODE = "sim_unit_code"
 SIM_TAG_DECIMAL_POINT = "sim_decimal_point"
-SIM_TAG_PV_FLOAT_MSW = "sim_pv_float_msw"
-SIM_TAG_PV_FLOAT_LSW = "sim_pv_float_lsw"
 SIM_TAG_PV_INT16 = "sim_pv_int16"
 
 
@@ -60,6 +54,7 @@ class ProSenseApplication(Application):
     async def setup(self):
         self._last_poll_ts: float = 0.0
         self._last_successful_read_ts: float = 0.0
+        self._warned_unit_codes: set[int] = set()
 
     async def main_loop(self):
         now = time.time()
@@ -74,11 +69,13 @@ class ProSenseApplication(Application):
     # -----------------------------------------------------------------
 
     async def _poll(self, now: float) -> None:
+        # The IEEE754 float register at 0x0016 isn't exposed by every
+        # ProSense probe (e.g. the SBWR-LED temperature variant skips
+        # it), and probing for it on every poll produces a torrent of
+        # Modbus exceptions. We read the int16 PV at 0x0004 + decimal
+        # point at 0x0003 instead — present on the whole product family.
         meta_regs = await self._read_meta()
         meta = decode_meta(meta_regs)
-
-        pv_float_regs = await self._read_pv_float()
-        pv_native = decode_pv_float(pv_float_regs)
 
         pv_int16_regs = await self._read_pv_int16()
         pv_int16_decoded = decode_pv_int16(pv_int16_regs, meta.decimal_point)
@@ -86,8 +83,6 @@ class ProSenseApplication(Application):
         await self._publish(
             now=now,
             meta=meta,
-            pv_native=pv_native,
-            pv_float_regs=pv_float_regs,
             pv_int16_regs=pv_int16_regs,
             pv_int16_decoded=pv_int16_decoded,
         )
@@ -97,11 +92,6 @@ class ProSenseApplication(Application):
             return self._read_meta_from_sim()
         return await self._modbus_read(META_BLOCK_START, META_BLOCK_COUNT, "meta")
 
-    async def _read_pv_float(self):
-        if self._sim_enabled():
-            return self._read_pv_float_from_sim()
-        return await self._modbus_read(PV_FLOAT_BLOCK_START, PV_FLOAT_BLOCK_COUNT, "pv_float")
-
     async def _read_pv_int16(self):
         if self._sim_enabled():
             return self._read_pv_int16_from_sim()
@@ -109,7 +99,7 @@ class ProSenseApplication(Application):
 
     async def _modbus_read(self, start: int, count: int, label: str):
         try:
-            return await self.modbus_iface.read_registers(
+            result = await self.modbus_iface.read_registers(
                 bus_id=self.config.modbus_config.name.value,
                 modbus_id=self.config.slave_id.value,
                 start_address=start,
@@ -119,6 +109,10 @@ class ProSenseApplication(Application):
         except Exception:
             log.exception("Modbus read failed (%s @ 0x%04X x %d)", label, start, count)
             return None
+        if result is None:
+            return None
+        # pydoover returns a bare int when num_registers=1; normalise to a list.
+        return [result] if isinstance(result, int) else result
 
     # ---- sim path ---------------------------------------------------
 
@@ -135,13 +129,6 @@ class ProSenseApplication(Application):
             return None
         return [int(unit), int(dp)]
 
-    def _read_pv_float_from_sim(self):
-        msw = self.get_tag(SIM_TAG_PV_FLOAT_MSW, self._sim_key())
-        lsw = self.get_tag(SIM_TAG_PV_FLOAT_LSW, self._sim_key())
-        if msw is None or lsw is None:
-            return None
-        return [int(msw), int(lsw)]
-
     def _read_pv_int16_from_sim(self):
         raw = self.get_tag(SIM_TAG_PV_INT16, self._sim_key())
         if raw is None:
@@ -157,8 +144,6 @@ class ProSenseApplication(Application):
         *,
         now: float,
         meta: MetaReading,
-        pv_native: float | None,
-        pv_float_regs,
         pv_int16_regs,
         pv_int16_decoded: float | None,
     ) -> None:
@@ -170,23 +155,16 @@ class ProSenseApplication(Application):
         if meta.decimal_point is not None:
             await self.tags.decimal_point.set(meta.decimal_point)
 
-        if pv_float_regs is not None and len(pv_float_regs) >= 2:
-            await self.tags.raw_pv_float_msw.set(int(pv_float_regs[0]))
-            await self.tags.raw_pv_float_lsw.set(int(pv_float_regs[1]))
         if pv_int16_regs is not None and len(pv_int16_regs) >= 1:
             await self.tags.raw_pv_int16.set(to_signed16(int(pv_int16_regs[0])))
 
-        # Determine the published reading. Prefer the float (highest
-        # precision); fall back to the int16+dp path if the float is
-        # missing (older firmware) but the int16 came through.
-        value_native = pv_native if pv_native is not None else pv_int16_decoded
-        if value_native is None:
+        if pv_int16_decoded is None:
             await self._note_failed_read(now)
             return
 
-        await self.tags.pv_native.set(round(value_native, 4))
+        await self.tags.pv_native.set(round(pv_int16_decoded, 4))
 
-        published = self._convert_for_display(value_native, meta)
+        published = self._convert_for_display(pv_int16_decoded, meta)
         if published is None:
             # We got a number from the sensor but can't safely convert
             # it — e.g. temperature variant but the sensor is reporting
@@ -218,18 +196,21 @@ class ProSenseApplication(Application):
             return value_native
 
         # Temperature path: we need to know the sensor's native unit
-        # (°C or °F) to convert into the user's display unit.
-        expected = EXPECTED_UNIT_CODES[Variant.TEMPERATURE]
-        if meta.unit_code is not None and meta.unit_code not in expected:
-            log.warning(
-                "Sensor unit code %s (%s) is not a temperature unit; refusing to publish",
-                meta.unit_code, unit_label(meta.unit_code),
-            )
-            return None
-
+        # (°C or °F) to convert into the user's display unit. Different
+        # ProSense temperature probes use 0x0002 for sub-type / model
+        # codes that don't follow the pressure-family unit table, so an
+        # unrecognised code isn't a publish-blocker — the user has
+        # already declared the variant. Treat unknown codes as °C and
+        # warn once per code.
         sensor_unit = temperature_unit_from_code(meta.unit_code)
         if sensor_unit is None:
-            # Couldn't read the unit register — assume °C, the default.
+            if meta.unit_code is not None and meta.unit_code not in self._warned_unit_codes:
+                log.warning(
+                    "Sensor unit code %s (%s) is not a known temperature unit; "
+                    "assuming °C (variant=temperature is set in config)",
+                    meta.unit_code, unit_label(meta.unit_code),
+                )
+                self._warned_unit_codes.add(meta.unit_code)
             sensor_unit = TemperatureUnit.CELSIUS
 
         display = TemperatureUnit(self.config.display_unit.value)
@@ -240,6 +221,7 @@ class ProSenseApplication(Application):
         timeout = self.config.no_comms_timeout_seconds.value
         if self._last_successful_read_ts == 0 or staleness > timeout:
             await self.tags.comms_ok.set(False)
+            await self.tags.temperature.set(None)
 
     # -----------------------------------------------------------------
     # Technician command tags
