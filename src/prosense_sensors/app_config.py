@@ -62,10 +62,10 @@ class ProSenseConfig(config.Schema):
         description="Modbus unit / slave ID of the ProSense sensor (1..255).",
     )
 
-    poll_interval_seconds = config.Integer(
+    poll_interval_seconds = config.Number(
         "Poll Interval (seconds)",
         name="poll_interval_seconds",
-        default=3,
+        default=1.0,
         description="How often to read the sensor.",
     )
 

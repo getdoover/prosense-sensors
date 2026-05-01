@@ -56,6 +56,9 @@ class ProSenseApplication(Application):
         self._last_successful_read_ts: float = 0.0
         self._warned_unit_codes: set[int] = set()
 
+        self.loop_target_period = min(0.5, self.config.poll_interval_seconds.value)
+        self.tag_manager.observed_max_age = self.config.poll_interval_seconds.value
+
     async def main_loop(self):
         now = time.time()
         await self._handle_command_tags()
