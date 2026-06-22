@@ -39,24 +39,22 @@ import sys
 import time
 from pathlib import Path
 
-# Reuse the app's register map + encoders rather than re-deriving them.
-# Works both from inside the repo (src/prosense_sensors/...) and when this
-# file is copied flat next to prosense_driver.py (the remote-run path).
+# Reuse the app's register map + encoders rather than re-deriving them. We
+# import the bare driver module file directly (adding its dir to the path)
+# rather than `prosense_sensors.prosense_driver` — the latter would run the
+# package __init__, which pulls in pydoover and the whole app. prosense_driver
+# only needs the stdlib, so a commissioning tool can use it with nothing else
+# installed. Candidates: the in-repo package dir, and the script's own dir
+# (the flat copy made by the remote-run wrapper).
 _HERE = Path(__file__).resolve().parent
-for _candidate in (_HERE.parent / "src", _HERE):
+for _candidate in (_HERE.parent / "src" / "prosense_sensors", _HERE):
     if _candidate.is_dir():
         sys.path.insert(0, str(_candidate))
 
-try:
-    from prosense_sensors.prosense_driver import (  # noqa: E402
-        REG_BAUD, REG_SAVE_USER, REG_SLAVE_ID,
-        encode_baud, validate_slave_id, _BAUD_CHOICES,
-    )
-except ModuleNotFoundError:
-    from prosense_driver import (  # type: ignore  # noqa: E402
-        REG_BAUD, REG_SAVE_USER, REG_SLAVE_ID,
-        encode_baud, validate_slave_id, _BAUD_CHOICES,
-    )
+from prosense_driver import (  # type: ignore  # noqa: E402
+    REG_BAUD, REG_SAVE_USER, REG_SLAVE_ID,
+    encode_baud, validate_slave_id, _BAUD_CHOICES,
+)
 
 FC_READ_HOLDING = 0x03
 FC_WRITE_SINGLE = 0x06

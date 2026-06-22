@@ -382,7 +382,7 @@
             "position": "$config.app().dv_app_position:number:100",
             "icon": null,
             "colour": null,
-            "defaultOpen": false,
+            "defaultOpen": "$config.app().dv_app_default_open:boolean",
             "type": "uiApplication",
             "name": "$config.app().APP_KEY",
             "children": {
@@ -395,7 +395,8 @@
                     "hidden": false,
                     "varType": "float",
                     "currentValue": "$tag.app().temperature:number:null",
-                    "decPrecision": 2
+                    "decPrecision": 2,
+                    "live": true
                 },
                 "comms_ok": {
                     "name": "comms_ok",
@@ -414,7 +415,6 @@
                     "position": 10,
                     "hidden": "$tag.app().comms_ok:boolean:false",
                     "currentValue": "$cmds.app().comms_warning",
-                    "appKey": "$config.app().APP_KEY",
                     "can_cancel": true
                 },
                 "over_temp_warning": {
@@ -424,7 +424,6 @@
                     "position": 11,
                     "hidden": "$tag.app().temperature_ok:boolean:true",
                     "currentValue": "$cmds.app().over_temp_warning",
-                    "appKey": "$config.app().APP_KEY",
                     "can_cancel": true
                 }
             }

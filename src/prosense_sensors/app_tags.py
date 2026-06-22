@@ -5,7 +5,7 @@ class ProSenseTags(Tags):
     # ---- live reading (in the configured display_unit) ------------------
     # default=None so the UI shows "—" before the first read and after
     # the no-comms timeout, rather than a misleading 0.
-    temperature = Tag("number", default=None)
+    temperature = Tag("number", default=None, live=True)
 
     # ---- diagnostics / raw values ---------------------------------------
     # Sensor-side unit code from register 0x0002 (e.g. 20 = °C, 22 = °F).
