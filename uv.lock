@@ -4,11 +4,11 @@ requires-python = ">=3.11"
 
 [[package]]
 name = "aiohappyeyeballs"
-version = "2.6.2"
+version = "2.7.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/33/c6/61a2d7b7572279226bb2e7f61d7a19ca7c90da0329c93fa0d560cbf288d8/aiohappyeyeballs-2.6.2.tar.gz", hash = "sha256:e202810ee718bd01fc6ef49e8ea53d023d5cb6b581076d7925aa499fa55dbe64", size = 22591, upload-time = "2026-05-20T15:12:24.631Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ce/f4/eec0465c2f67b2664688d0240b3212d5196fd89e741df67ddb81f8d35658/aiohappyeyeballs-2.7.1.tar.gz", hash = "sha256:065665c041c42a5938ed220bdcd7230f22527fbec085e1853d2402c8a3615d9d", size = 24757, upload-time = "2026-07-01T17:11:55.501Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5f/fc/a7bf5b6e4e617b45f90f2d9d2a68519c249c81dd4fc2658c7a2a61c4f4b7/aiohappyeyeballs-2.6.2-py3-none-any.whl", hash = "sha256:4708045e2d7a6c6bdf8aafa8ed39649eaf926a4543b54560659129e3365953c4", size = 15062, upload-time = "2026-05-20T15:12:23.328Z" },
+    { url = "https://files.pythonhosted.org/packages/71/43/1947f06babed6b3f1d7f38b0c767f52df66bfb2bc10b468c4a7de9eceff2/aiohappyeyeballs-2.7.1-py3-none-any.whl", hash = "sha256:9243213661e29250eb41368e5daa826fc017156c3b8a11440826b2e3ed376472", size = 15038, upload-time = "2026-07-01T17:11:54.055Z" },
 ]
 
 [[package]]
@@ -144,15 +144,15 @@ wheels = [
 
 [[package]]
 name = "anyio"
-version = "4.14.0"
+version = "4.14.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "idna" },
     { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1c/b5/001890774a9552aff22502b8da382593109ce0c95314abaebbb116567545/anyio-4.14.0.tar.gz", hash = "sha256:b47c1f9ccf73e67021df785332508f99379c68fa7d0684e8e3492cb1d4b23f89", size = 253586, upload-time = "2026-06-15T22:00:49.021Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3b/72/5562aabb8dd7181e8e860622a38bea08d17842b99ecd4c91f84ac95251b0/anyio-4.14.1.tar.gz", hash = "sha256:8d648a3544c1a700e3ff78615cd679e4c5c3f149904287e73687b2596963629e", size = 254831, upload-time = "2026-06-24T20:56:06.017Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ba/16/9826f089383c593cdfc4a6e5aca94d9e91ae1692c57af82c3b2aa5e810f7/anyio-4.14.0-py3-none-any.whl", hash = "sha256:dd9b7a2a9799ed6552fde617b2c5df02b7fdd7d88392fc48101e51bae46164d9", size = 123506, upload-time = "2026-06-15T22:00:47.595Z" },
+    { url = "https://files.pythonhosted.org/packages/b0/7b/90df4a0a816d98d6ea26f559d87836d494a2cf1fcf063be67df50a7bcc30/anyio-4.14.1-py3-none-any.whl", hash = "sha256:4e5533c5b8ff0a24f5d7a176cbe6877129cd183893f66b537f8f227d10527d72", size = 124875, upload-time = "2026-06-24T20:56:04.413Z" },
 ]
 
 [[package]]
@@ -776,15 +776,15 @@ wheels = [
 
 [[package]]
 name = "pydoover"
-version = "1.5.1"
+version = "1.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "httpx" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/70/6d/d3eefa00027a426eb68eea4f26eec8d2c9faaf14f6b4295f84744b76623d/pydoover-1.5.1.tar.gz", hash = "sha256:100f8e20506eba9c4af09daba07d2a21666007888277deadfd2586ec53edaa67", size = 542527, upload-time = "2026-06-19T05:02:38.121Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/9b/5a327fe2d994cdefc9b590d05baaafe979de723f47586882de1392bd7daa/pydoover-1.8.0.tar.gz", hash = "sha256:b066851bbe7dc2654f4f0a752f0977ecd62ed50ca2f0d7becea6adc1a786e267", size = 539438, upload-time = "2026-07-02T04:39:39.762Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c4/b3/523fd82e5ca547a7a988f91a28bdd17fb11008cd8ef717345a68588ed2d0/pydoover-1.5.1-py3-none-any.whl", hash = "sha256:a87df9322ab1eabacd33823169cf4b05c1d57fbd87a5ff9eb80ecce760d3aa11", size = 279271, upload-time = "2026-06-19T05:02:36.577Z" },
+    { url = "https://files.pythonhosted.org/packages/9e/56/ebde875d92a68c412eccd945a0aa83ca4c73bfc7cdc093956c33e3312bec/pydoover-1.8.0-py3-none-any.whl", hash = "sha256:5b7ae97ab47eb2cc3afe273f9a8a39c9881d5bd2b9f55e2699868d19afa7fc6e", size = 286422, upload-time = "2026-07-02T04:39:38.22Z" },
 ]
 
 [[package]]
